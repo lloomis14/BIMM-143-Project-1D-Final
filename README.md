@@ -28,6 +28,6 @@ MAOA_1.png: Image for quality of model for MAOA_1.pdb
 
 zfish.png:  Image for quality of model for zfish.pdb
 
-Project 2C Final.rmd: The original R notebook file, with the script and graph outputs, this is VERY rough draft that I plan on improving.
+Project 2C Final.rmd: The original R notebook file, with the script and graph outputs.
 
 Project 2C Final.nb.html: The knitted html version of the same file.
