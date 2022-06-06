@@ -1,0 +1,269 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+Background
+Monoamine oxidases are key proteins in the down regulation of neurotransmitters in the brain, and their mutation can lead to many different phenotypes including aggression and neurodegenerative disease.
+
+Shih, “From Genes to Behavior”, 1999,  https://www.annualreviews.org/doi/pdf/10.1146/annurev.neuro.22.1.197 
+
+Mice with MAO A knockout have elevated serotonin, norephinepherine, and dopamine levels, as well as aggressive behavior.    Mice with MAO B do not have aggressive behaviors, but increased levels of phenylethylamine and resistance to a              Parkinsongenic neurotoxin.
+
+Edmondson, “Structure and Mechanism of Monoamine Oxidase”, 2004 https://www.ingentaconnect.com/contentone/ben/cmc/2004/00000011/00000015/art00003?crawler=true&mimetype=application/pdf&casa_token=iHHUF5AkGZ0AAAAA:KSI-mrmlibjR1xBzVTqYG0VOSqAFW2f0nJUY2q9LkOP-vvk9krlA-9t9dOQOhBnErh_N4fTJvi10daS18JU 
+
+MAO A and MAO B both contain an FAD that is key to catalysis as a Redox factor, MAO B has two primary hydrophobic regions   being an entrance cavity and an active site. These two can be fused or separated depending on Ile199, which controls the    open and closed conformation.
+ 
+Shih, “Monoamine Oxidase in Neuropsychiatry and Behavior”, 1999 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1377964/pdf/10441564.pdf
+
+Polymorphisms in MAO A are associated with factors like aggression, substance abuse, bipolar disorder, and panic disorder.  Mice with MAO A gene disrupted displayed aggression, seen in confrontation with resident / on resident mice. Mice with    MAO A gene disruption leads to dysregulation of dopamine, and norepinephrine leading to cytoarchitectural alterations in    the somatosensory cortex 
+
+Gokhan, “Human Monoamine Oxidase A Gene Determines Levels of Enzyme Activity”, 1991. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1683299/pdf/ajhg00079-0136.pdf
+
+In males below the age of 20, MAO A activity in fibroblasts ranged from 0 pM / min / protein. Two single base pair substitutions were observed in cDNAs from cells with a 30 fold difference in activity levels.
+A third polymorphism was found in the noncoding region of the MAO A gene.
+These polymorphisms, while not affecting protein sequence, were shown to be significantly associated with alleles that show different MAO A levels.
+
+Stasiak, “Effects of Novel Monoamine Oxidases and Cholinesterases Targeting Compounds on Brain Neurotransmitters and Behavior in Rat Model of Vascular Dementia”, 2014 https://www.ingentaconnect.com/contentone/ben/cpd/2014/00000020/00000002/art00003?crawler=true
+
+
+MAO A was significantly inhibited, MAO B less so, and histamine N-Methyltransferase the least when exposed to compounds ASS188 and ASS234.A reduced  acetylcholineesterase (AChE) activity is detected and increased serotonin, dopamin, noradrenaline, and histamine. Rats treated with ASS188 or ASS234 did better on the hole board test (which is meant to measure stress / anxiety) than untreated mice, pointing it as a possibly beneficial treatment.
+
+Genet, "The Promise of the Zebrafish Model for Parkinson’s Disease: Today’s Science and Tomorrow’s Treatment", 2021 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8082503/ 
+
+Zebra fish are a common model for neurodegenerative disease because of their unique brain chemistry. In addition they share many similar biochemical pathways making them a unique model organism.
+
+Introduction
+Scientific Question: By comparing the protein sequences, and the proposed 3D structures, of MAO A, MAO B and zebra fish monoamine oxidases, can the origin of functional differences in the proteins be discovered?
+
+Hypothesis: If the functional differences of MAO A, MAO B and the MAO of the zebra fish is caused by the nucleotide sequences then differences will be observable in the protein sequences and 3D structures leading to differences in binding and activation pockets of these enzymes.
+
+Loading in Packages
+
+```{r}
+#loading my packages and making them invisible
+
+#gives me access to better graphing tools
+invisible(library(ggplot2))
+#useful for reading/downloading PDB files and performing analysis on the structure
+invisible(library(bio3d))
+#package for my multiple sequence analysis
+invisible(library(msa))
+#used to melt the matrix for the heat map graphing
+invisible(library(reshape2))
+#used to 3d model protein
+invisible(library(r3dmol))
+#creating images for protein pdbs
+invisible(library(NGLVieweR))
+```
+
+Performing Bioinformatics Analysis / Plotting the Results
+Multiple Sequence Alignments:
+First I read in my proteins as faa files. Some of these happen to have two isotypes included so I also split them into their own sequences to be aligned. This is all done with the readAAStringSet function from biostrings. After setting up a matrix to fill out, a multiple sequence alignment is performed with the msa function from the msa package. This is then masked into different regions of the MAO proteins from the papers above. The conservation score (or probability that the amino acid is conserved in the protein) is what I use to measure for homology, which is normalized from the length of the protein region. These values are what fill out the bar graph to see where major differences in the proteins exist.
+
+Then alignments between the first isotype of MAO A and the rest of the proteins is performed also with the msa function. These are then broken into their regions and the conservation scores are again filed into a matrix. The resulting heatmap represents the amount of homology between the MAO A isotype 1 protein and the test protein. The lighter the blue the higher conservation score, the dark blue the lower the conservation score (and less homology in the sequences). While it is not a perfect system as it represents the probability of conservation, which varies slightly on the region analyzed, there are clear color differences when the regions of interest have variations in the amino acid sequences.
+
+Homology Modeling:
+Finally, the homolgy modeling was done with swiss modeling at https://swissmodel.expasy.org/. The template use is a MAO B protein modeled from the human genome. It is visualized below with the NLGVieweR function from the NLGVieweR package to show its 3D model. The resulting PDB files from the homology modeling are uploaded to the github associated with this file.
+
+```{r}
+#Reading in my MAO A amino acid sequences, file taken from: https://www.ncbi.nlm.nih.gov/gene?Db=gene&Cmd=DetailsSearch&Term=4128
+
+MAOA_RNA <- readAAStringSet("./MAO_A_protein.faa")
+
+#splitting it into its isoforms
+
+MAOA_isoform1 <- MAOA_RNA[1]
+
+MAOA_isoform2 <- MAOA_RNA[2]
+
+#Reading in my MAO B amino acid sequences, file taken from: https://www.ncbi.nlm.nih.gov/gene/4129
+
+MAOB_RNA <- readAAStringSet("./MAO_B_protein.faa")
+
+#splitting into isoforms
+
+MAOB_isoform1 <- MAOB_RNA[1]
+
+MAOB_isoform2 <- MAOB_RNA[2]
+
+#Reading in my zebra fish amino acid sequences, file taken from: https://www.ncbi.nlm.nih.gov/protein/NP_997992.2/
+
+zfish_MAO <- readAAStringSet("./zfish_protein.faa")
+
+#making my sequences into a vector
+sequences <- c(MAOA_isoform1, MAOA_isoform2, MAOB_isoform1, MAOB_isoform2, zfish_MAO)
+
+#making a vector of the sequence labels
+seq_names <- c("MAO A 1", "MAO A 2", "MAO B 1", "MAO B 2", "zebra fish MAO")
+
+#creating the empty matrix to populate for the heatmap
+empty_matrix <- matrix(ncol = length(sequences), nrow = length(sequences))
+
+#setting its column and row names
+colnames(empty_matrix) <- seq_names 
+rownames(empty_matrix) <- seq_names 
+```
+
+```{r}
+
+#msa code taken from / inspired by: https://bioconductor.org/packages/devel/bioc/vignettes/msa/inst/doc/msa.pdf
+
+#preforming an alignment with my vector of sequences
+full_alignment <- invisible(msa(sequences))
+
+#creating a function for masking the sequences into its different domains
+masking <- function(a, b){
+  #making a copy of the full alignment to mask off
+  masked <- full_alignment
+  
+  #creaking to different ranges for masking off the areas, using variables a and b to slected the areas.
+  masking1 <- IRanges(start=1, end= a)
+  masking2 <- IRanges(start= b, end=530)
+  
+  #performing the masking
+  colmask(masked) <- masking1
+  colmask(masked) <- masking2
+  
+  #making the conservation scores for each 
+  ConScore <- msaConservationScore(masked, BLOSUM62)
+  #taking the sum of the conservation scores and normalizing it to the length of the protein (or the number of amino acids in the conservation score)
+  ConScores <- sum(ConScore, na.rm = TRUE)/length(subset(ConScore, ConScore > 1))
+  return(ConScores)
+}
+
+#residue numbers taken from : https://www.ingentaconnect.com/contentone/ben/cmc/2004/00000011/00000015/art00003?crawler=true&mimetype=application/pdf&casa_token=iHHUF5AkGZ0AAAAA:KSI-mrmlibjR1xBzVTqYG0VOSqAFW2f0nJUY2q9LkOP-vvk9krlA-9t9dOQOhBnErh_N4fTJvi10daS18JU
+
+#substrate binding domains 80-210, 286-390, 454-488
+Sub1 <- masking(80, 210)
+Sub2 <- masking(286, 390)
+Sub3 <- masking(454, 488)
+
+#FAD binding domains 4-79, 211-285, 391-453
+FAD1 <- masking(4, 79)
+FAD2 <- masking(211, 285)
+FAD3 <- masking(391, 453)
+
+#creating a plot of these conservation scores
+#making the vector of the different scores  I calculated above
+conscores <- c(Sub1, Sub2, Sub3, FAD1, FAD2, FAD3)
+
+#creating a matrix for plotting
+plotting <- matrix(nrow = 6, ncol = 1)
+
+#setting the names of the rows to the different protein regions and the labeling the column as conservation score.
+regions <- c("Sub1", "Sub2", "Sub3", "FAD1", "FAD2", "FAD3")
+rownames(plotting)<- regions
+colnames(plotting) <- "Conservation_Score"
+
+#populating the matrix and making it a dataframe
+plotting[ ,1] = conscores
+plotting <- data.frame(plotting)
+
+#creating a plot
+ggplot(data = plotting, aes( x = rownames(plotting), y = Conservation_Score)) +
+         geom_bar(stat = "identity")
+
+print(full_alignment)
+```
+
+
+```{r}
+#creating a new empty matrix to populate
+empty_matrix2 <- matrix(nrow = length(regions), ncol = length(sequences))
+#setting the row names and column names in the empty matrix
+rownames(empty_matrix2) <- regions
+colnames(empty_matrix2) <- seq_names 
+
+#msa code taken from / inspired by: https://bioconductor.org/packages/devel/bioc/vignettes/msa/inst/doc/msa.pdf
+
+#BLOSUM62 is defuault scoring matrix for BLASTP
+# https://bio.libretexts.org/Bookshelves/Cell_and_Molecular_Biology/Book%3A_Investigations_in_Molecular_Cell_Biology_(O'Connor)/09%3A_Protein_Conservation/9.05%3A_BLOSUM62_scoring_matrix_for_amino_acid_substitutions#:~:text=The%20BLOSUM62%20matrix%20is%20used,when%20two%20proteins%20were%20aligned.
+
+#creating many empty matrices for my own organization
+data(BLOSUM62)
+test_matrix2 <- empty_matrix2
+
+#making a function for comparing two sequences and masking them based on the domains
+ConScore_Calc <- function(z, g, h){
+#selecting what sequence I would like to analyze
+  MAO_A_1 <- sequences[1]
+  test_sequence <- sequences[z]
+  test_sequences <- c(MAO_A_1, test_sequence)
+  length <- max(c(nchar(MAO_A_1), nchar(test_sequence)))
+#performing full alignment of the sequences 
+  alignment <- msa(test_sequences)
+#setting a copy of the alignment to mask
+  masked <- alignment
+#creating ranges to mask
+  masking1 <- IRanges(start = 1, end = g)
+  masking2 <- IRanges(start = h, end= length)
+#performing masks to look at specific regions
+  colmask(masked) <- masking1
+  colmask(masked) <- masking2
+#making matrix of conservation scores
+  ConScore <- msaConservationScore(masked, BLOSUM62)
+#making the sum of the conservation scores and normalizing for length
+  ConScores <- sum(ConScore, na.rm = "TRUE")/length(subset(ConScore, ConScore > 1))
+  return(ConScores)
+}
+
+
+
+#substrate binding domains 80-210, 286-390, 454-488
+for(i in 1:nrow(test_matrix)){
+  
+test_matrix2[1, i] <- ConScore_Calc(i, 80, 210)
+test_matrix2[2, i] <- ConScore_Calc(i, 286, 390)
+test_matrix2[3, i] <- ConScore_Calc(i, 454, 488)
+#FAD binding domains 4-79, 211-285, 391-453
+test_matrix2[4,i] <- ConScore_Calc(i, 4, 79)
+test_matrix2[5,i] <- ConScore_Calc(i, 211, 285)
+test_matrix2[6, i] <- ConScore_Calc(i, 391, 453)
+}
+```
+
+```{r}
+#melting the matrix so I can graph it
+melted_test <- melt(test_matrix2)
+
+#creating the heatmap with ggplot2
+ggplot(data = melted_test, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile()+
+  labs(y="Sequence Alignment to MAO A 1", x="Region", title="Conservation Scores of MAO Sequences") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+```{r}
+#https://www.rcsb.org/structure/1gos
+
+#showing 3D structure of template protein for homology modeling
+NGLVieweR("1gos") %>%
+  stageParameters(backgroundColor = "white", zoomSpeed = 1) %>%
+  addRepresentation("cartoon",
+    param = list(name = "cartoon", colorScheme = "residueindex")
+  )
+
+#all pdb files from homology modeling are uploaded to github for viewing
+#quality of the models are given below
+#all models made from https://swissmodel.expasy.org/
+```
+
+!["MAO A model quality"](./MAOA_1.png)
+!["Zebra fish MAO model quality"](./zfish.png)
+
+Analyze the Results
+Multiple Sequence Alignment:
+
+Homology of the FAD binding domains and substrate binding domains across three different regions each are aligned. The lower the conservation score, the less homology in the sequences. The least homology is seen in the first FAD binding domain, however the second isotype of MAO A has this region almost entirely deleted. Otherwise there is moderate variation in conservation in the three substrate binding sites, with the second one having the most homology. 
+
+Secondly, when plotting the alignments by region and individual proteins we can see that the first binding site of FAD isn't readable for the alignment of isotype 1 of MAO A to isotype 2 of MAO A. This makes sense as this was the major region that was missing at the beginning at the second isotype of MAO A. Additionally, there is a high amount of variation in substrate binding site 3 across the MAO B isotypes 1 and 2 as well as the zebra fish MAO. This makes sense as they commonly bind different substrates, and editing these binding sites would affect these interactions. Interestingly enoungh the third FAD binding domain is very light blue across the sequences, showing a high conservation score and is highly conserved.
+
+Homology Modeling
+These replaces and deletions impact the 3D structure of the proteins. This can be seen between the amino acids of 454 and 488 in the zebra fish protein specifically. These residues changing significantly change that binding pocket and as a result the specificity of the enzyme.
+
+
+
+
+
+
